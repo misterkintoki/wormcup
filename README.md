@@ -1,123 +1,91 @@
-# WormCup API Runner
+# WormCup Bot
 
-Pure API automation untuk Telegram miniapp WormCup.
+Telegram miniapp automation for [WormCup](https://t.me/wormcupbot?startapp=EK3X2IX) — World Cup prediction game by Worm.
 
-- No Playwright / no browser automation.
-- Telethon hanya untuk login Telegram dan refresh `tgWebAppData`.
-- API requests pakai `curl_cffi` supaya request fingerprint mirip Chrome dan tidak mentok Cloudflare.
-- Multi-account: simpan session per akun di `sessions/<name>.session`.
-- Prediksi tidak random: skor dipilih dari data `distribution` match API WormCup.
+- **Tap-to-earn**: 100 plays/day per account
+- **Score predictions**: spread strategy across multiple accounts
+- **Daily check-in**: auto streak maintenance
+- **Pure API**: no browser, no Telethon, no Playwright
 
-## Install
-
-```bash
-python -m pip install -r requirements.txt
-```
-
-## Run
+## Quick Start
 
 ```bash
-python p.py
+pip install -r requirements.txt
+cp .env.example .env
+
+# Paste your token(s) — one per line
+echo "eyJhbG..." > token.txt
+
+# Run
+python wormcup.py
 ```
 
-Menu:
+## Get Token
 
-1. Tambah/refresh account
-2. Existing accounts: clear daily/play/predict
-3. Existing one account
-4. Show accounts
-0. Exit
+1. Open [WormCup](https://t.me/wormcupbot?startapp=EK3X2IX) in Telegram Desktop
+2. F12 → Network → filter `api.worm.wtf`
+3. Find `Authorization: Bearer eyJhbG...` header
+4. Copy the token (without "Bearer ") → paste to `token.txt`
 
-Menu 2/3 sekarang bisa loop:
+Token expires in **7 days**. Re-paste when expired.
 
-- `Play count -1` = tap semua remaining
-- `Play count 0` = skip play
-- `Play count N` = tap N kali saja
-- `Loop interval 0` = sekali jalan
-- `Loop interval 300` = ulang tiap 5 menit dengan countdown animasi
-
-## CLI non-interaktif
-
-List akun:
+## Multi-Account
 
 ```bash
-python p.py --list
+# token.txt — one token per line
+cat > token.txt << 'EOF'
+eyJhbG...acc1
+eyJhbG...acc2
+eyJhbG...acc3
+EOF
 ```
 
-Run semua akun, claim daily, tap 10x per akun, predict 3 match open:
+Each account gets **different score predictions** (spread strategy) to maximize pool coverage.
+
+## Commands
 
 ```bash
-python p.py --run-all --play-count 10 --predict-max 3 --delay 15
+python wormcup.py                    # run all: tap + predict
+python wormcup.py --plan             # preview predictions only
+python wormcup.py --status           # check token expiry
+python wormcup.py --play 50          # 50 taps only
+python wormcup.py --predict 0        # skip predictions
+python wormcup.py --play 0 --predict 3  # predict only, no taps
+python wormcup.py --loop 3600        # loop every hour
+python wormcup.py --delay 20         # slower taps (anti-429)
 ```
 
-Run semua akun, tap semua remaining dengan delay anti-429:
+## Config (.env)
 
-```bash
-python p.py --run-all --play-count -1 --predict-max 3 --delay 15
-```
+| Variable | Default | Description |
+|---|---|---|
+| `WORMCUP_API` | `https://api.worm.wtf` | API endpoint |
+| `WORMCUP_DELAY` | `15` | Seconds between taps |
+| `WORMCUP_PREDICT` | `3` | Max matches to predict per account |
+| `WORMCUP_TOKENS` | `./token.txt` | Token file path |
+| `WORMCUP_SPREAD` | `true` | Different scores per account |
 
-Run satu akun:
+CLI args override `.env` values.
 
-```bash
-python p.py --run main --play-count 5 --predict-max 1 --delay 15
-```
+## Spread Strategy
 
-Run loop tiap 5 menit:
+With multiple accounts, each gets a different score per match:
 
-```bash
-python p.py --run-all --play-count -1 --predict-max 3 --delay 15 --loop 300
-```
+| Account | Match A | Match B |
+|---|---|---|
+| acc1 | 2-1 (primary) | 1-0 (primary) |
+| acc2 | 1-0 (alt) | 2-1 (alt) |
+| acc3 | 0-0 (contrarian) | 0-1 (counter-trend) |
 
-Skip play atau skip predict:
+- **Primary**: distribution-based (most likely)
+- **Alt**: alternative realistic scores
+- **Contrarian**: counter-trend picks (less competition)
 
-```bash
-python p.py --run-all --play-count 0 --predict-max 0
-```
+Matches sorted by `predictor_count` ASC — less crowded pools first.
 
-## Multi-account 5 akun
+## 429 Rate Limit
 
-Login satu-satu dari menu 1, beri nama misalnya:
-
-- main
-- acc2
-- acc3
-- acc4
-- acc5
-
-Nanti `accounts.json` otomatis berisi 5 akun, session tersimpan di folder `sessions/`.
-
-## Tentang 429 saat play
-
-HTTP 429 = rate limit dari server karena tap terlalu cepat. Script sekarang handle dengan:
-
-- default delay antar tap 15 detik
-- kalau kena 429, wait 30-90 detik lalu retry max 3x
-- `--delay` bisa dinaikkan kalau server masih galak, contoh `--delay 20`
-
-## Prediksi
-
-Exact-score prediction tidak bisa dijamin. Script tidak ngarang/random; dia ambil `distribution` dari endpoint `/api/worldcup/matches/` lalu pilih skor deterministik:
-
-- draw kuat/close market -> 0-0 atau 1-1
-- home favorit berat -> 2-0
-- home favorit sedang -> 2-1
-- home slight edge -> 1-0
-- away favorit berat -> 0-2
-- away favorit sedang -> 1-2
-- away slight edge -> 0-1
-
-Alasan prediksi dicetak di output, contoh:
-
-```text
-Germany vs Curacao: 2-0 -> 200 | Germany heavy favorite: home=65% away=12%
-```
-
-## GitHub safety
-
-Jangan upload session/auth:
-
-- `sessions/`
-- `data/`
-- `accounts.json`
-
-Semua sudah masuk `.gitignore`.
+Default delay is 15s between taps. If you get 429s:
+- Increase `WORMCUP_DELAY=20` in `.env`
+- Or `--delay 20` via CLI
+- Script auto-retries on 429 (30-90s wait, max 3 retries)
