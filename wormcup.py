@@ -158,7 +158,8 @@ class API:
                 c, j = self.req('POST', '/api/worldcup/game/play/')
                 if c == 200:
                     ok += 1
-                    print(f'    tap {ok}/{n}')
+                    sys.stdout.write(f'\r    tap {ok}/{n}  ')
+                    sys.stdout.flush()
                     break
                 if c == 429 and retry < 3:
                     w = max(30, min(90, delay * (2 + retry)))
@@ -167,6 +168,7 @@ class API:
                 print(f'    tap {i+1} failed (HTTP {c})')
                 return {'ok': ok, 'target': n, 'err': c}
             if i < n - 1: time.sleep(delay + random.uniform(0, 1.5))
+        sys.stdout.write('\n')
         return {'ok': ok, 'target': n}
 
 
