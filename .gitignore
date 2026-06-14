@@ -3,3 +3,4 @@ data/
 *.session
 .env
 token.txt
+proxy.txt

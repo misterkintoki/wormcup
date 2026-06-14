@@ -46,7 +46,7 @@ DELAY = int(os.getenv('WORMCUP_DELAY', '15'))
 PREDICT_MAX = int(os.getenv('WORMCUP_PREDICT', '3'))
 TOKEN_FILE = os.getenv('WORMCUP_TOKENS', str(Path(__file__).parent / 'token.txt'))
 SPREAD = os.getenv('WORMCUP_SPREAD', 'true').lower() in ('true', '1', 'yes')
-PROXY = os.getenv('WORMCUP_PROXY', '')  # http://user:pass@host:port
+PROXY_FILE = os.getenv('WORMCUP_PROXY', str(Path(__file__).parent / 'proxy.txt'))
 
 H = {
     'accept': 'application/json, text/plain, */*',
@@ -63,6 +63,15 @@ def load_tokens():
     if not p.exists():
         return []
     return [l.strip() for l in p.read_text().splitlines() if l.strip()]
+
+
+def load_proxy():
+    """Load random proxy from proxy.txt. Returns URL string or None."""
+    p = Path(PROXY_FILE)
+    if not p.exists():
+        return None
+    lines = [l.strip() for l in p.read_text().splitlines() if l.strip()]
+    return random.choice(lines) if lines else None
 
 
 def unwrap(j):
@@ -89,8 +98,9 @@ class API:
     def __init__(self, tok):
         self.tok = tok
         self.s = requests.Session(impersonate='chrome124')
-        if PROXY:
-            self.s.proxies = {'http': PROXY, 'https': PROXY}
+        proxy = load_proxy()
+        if proxy:
+            self.s.proxies = {'http': proxy, 'https': proxy}
 
     def req(self, m, path, body=None, params=None, retries=3):
         url = WORM + path

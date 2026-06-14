@@ -16,6 +16,9 @@ cp .env.example .env
 # Paste your token(s) — one per line
 echo "eyJhbG..." > token.txt
 
+# Optional: add proxy if VPS IP blocked
+echo "http://user:pass@host:port" > proxy.txt
+
 # Run
 python wormcup.py
 ```
@@ -64,7 +67,7 @@ python wormcup.py --delay 20         # slower taps (anti-429)
 | `WORMCUP_PREDICT` | `3` | Max matches to predict per account |
 | `WORMCUP_TOKENS` | `./token.txt` | Token file path |
 | `WORMCUP_SPREAD` | `true` | Different scores per account |
-| `WORMCUP_PROXY` | *(empty)* | HTTP proxy URL |
+| `WORMCUP_PROXY` | `./proxy.txt` | Proxy file path |
 
 CLI args override `.env` values.
 
@@ -93,10 +96,12 @@ Default delay is 15s between taps. If you get 429s:
 
 ## Proxy
 
-If your VPS IP is blocked (HTTP 403), add a proxy to `.env`:
+If your VPS IP is blocked (HTTP 403), add proxies to `proxy.txt`:
 
-```
-WORMCUP_PROXY=http://user:pass@host:port
+```bash
+# proxy.txt — one proxy per line
+echo "http://user:pass@host:port" > proxy.txt
+echo "http://user:pass@host:port" >> proxy.txt
 ```
 
-Supports any HTTP proxy (DataImpulse, BrightData, SOAX, etc).
+Supports any HTTP proxy (DataImpulse, BrightData, SOAX, etc). Script picks a random proxy per request.
