@@ -156,11 +156,15 @@ class API:
             retry = 0
             while True:
                 c, j = self.req('POST', '/api/worldcup/game/play/')
-                if c == 200: ok += 1; break
+                if c == 200:
+                    ok += 1
+                    print(f'    tap {ok}/{n}')
+                    break
                 if c == 429 and retry < 3:
                     w = max(30, min(90, delay * (2 + retry)))
                     print(f'    429 wait {w}s ({retry+1}/3)')
                     time.sleep(w); retry += 1; continue
+                print(f'    tap {i+1} failed (HTTP {c})')
                 return {'ok': ok, 'target': n, 'err': c}
             if i < n - 1: time.sleep(delay + random.uniform(0, 1.5))
         return {'ok': ok, 'target': n}
