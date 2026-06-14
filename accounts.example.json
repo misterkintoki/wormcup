@@ -1,0 +1,32 @@
+[
+  {
+    "name": "main",
+    "phone": "+628xxxxxxxxxx",
+    "session": "sessions/main.session",
+    "start_param": "CLSQGLT"
+  },
+  {
+    "name": "acc2",
+    "phone": "+628xxxxxxxxxx",
+    "session": "sessions/acc2.session",
+    "start_param": "CLSQGLT"
+  },
+  {
+    "name": "acc3",
+    "phone": "+628xxxxxxxxxx",
+    "session": "sessions/acc3.session",
+    "start_param": "CLSQGLT"
+  },
+  {
+    "name": "acc4",
+    "phone": "+628xxxxxxxxxx",
+    "session": "sessions/acc4.session",
+    "start_param": "CLSQGLT"
+  },
+  {
+    "name": "acc5",
+    "phone": "+628xxxxxxxxxx",
+    "session": "sessions/acc5.session",
+    "start_param": "CLSQGLT"
+  }
+]
