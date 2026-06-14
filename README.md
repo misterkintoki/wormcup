@@ -64,6 +64,7 @@ python wormcup.py --delay 20         # slower taps (anti-429)
 | `WORMCUP_PREDICT` | `3` | Max matches to predict per account |
 | `WORMCUP_TOKENS` | `./token.txt` | Token file path |
 | `WORMCUP_SPREAD` | `true` | Different scores per account |
+| `WORMCUP_PROXY` | *(empty)* | HTTP proxy URL |
 
 CLI args override `.env` values.
 
@@ -89,3 +90,13 @@ Default delay is 15s between taps. If you get 429s:
 - Increase `WORMCUP_DELAY=20` in `.env`
 - Or `--delay 20` via CLI
 - Script auto-retries on 429 (30-90s wait, max 3 retries)
+
+## Proxy
+
+If your VPS IP is blocked (HTTP 403), add a proxy to `.env`:
+
+```
+WORMCUP_PROXY=http://user:pass@host:port
+```
+
+Supports any HTTP proxy (DataImpulse, BrightData, SOAX, etc).
