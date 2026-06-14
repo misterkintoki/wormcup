@@ -46,6 +46,7 @@ DELAY = int(os.getenv('WORMCUP_DELAY', '15'))
 PREDICT_MAX = int(os.getenv('WORMCUP_PREDICT', '3'))
 TOKEN_FILE = os.getenv('WORMCUP_TOKENS', str(Path(__file__).parent / 'token.txt'))
 SPREAD = os.getenv('WORMCUP_SPREAD', 'true').lower() in ('true', '1', 'yes')
+LOOP = int(os.getenv('WORMCUP_LOOP', '0'))
 PROXY_FILE = os.getenv('WORMCUP_PROXY', str(Path(__file__).parent / 'proxy.txt'))
 
 H = {
@@ -336,7 +337,7 @@ def cli():
     ap.add_argument('--play', type=int, default=-1)
     ap.add_argument('--predict', type=int, default=PREDICT_MAX)
     ap.add_argument('--delay', type=float, default=DELAY)
-    ap.add_argument('--loop', type=int, default=0)
+    ap.add_argument('--loop', type=int, default=LOOP)
     args = ap.parse_args()
 
     tokens = load_tokens()
